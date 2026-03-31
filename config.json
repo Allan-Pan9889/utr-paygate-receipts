@@ -1,0 +1,6 @@
+{
+  "gateway_name": "PayGate",
+  "transaction_no_prefix": "8691",
+  "transaction_time_start": "2026-01-01 00:00:00",
+  "transaction_time_end": "2026-12-31 23:59:59"
+}

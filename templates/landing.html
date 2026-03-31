@@ -1,0 +1,80 @@
+{% extends "site_base.html" %}
+{# 定价区块：改为 true 即显示 #}
+{% set show_pricing = false %}
+{% block content %}
+<section class="hero">
+  <h1>{{ t.hero.title }}</h1>
+  <p class="sub">{{ t.hero.subtitle }}</p>
+  <p class="hint" style="margin:0 0 1rem;font-size:0.95rem;color:#2e7d32">{{ t.hero.badge }}</p>
+  <div class="cta-row">
+    <a class="btn btn-primary" href="{{ url_for('tool', lang=lang) }}">{{ t.hero.cta_tool }}</a>
+    <a class="btn btn-ghost" href="{{ url_for('download_sample') }}">{{ t.hero.cta_sample }}</a>
+  </div>
+</section>
+
+<section>
+  <h2>{{ t.pain.title }}</h2>
+  <ul class="plain">
+    {% for item in t.pain.lines %}
+    <li>{{ item }}</li>
+    {% endfor %}
+  </ul>
+</section>
+
+<section>
+  <h2>{{ t.features.title }}</h2>
+  <div class="feat-grid">
+    {% for it in t.features.blocks %}
+    <div class="feat-item">
+      <strong>{{ it.t }}</strong>
+      <span>{{ it.d }}</span>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<section>
+  <h2>{{ t.steps.title }}</h2>
+  <ol class="plain">
+    {% for item in t.steps.lines %}
+    <li>{{ item }}</li>
+    {% endfor %}
+  </ol>
+</section>
+
+<section>
+  <h2>{{ t.tech.title }}</h2>
+  <p class="note" style="margin:0">{{ t.tech.body }}</p>
+</section>
+
+{% if show_pricing %}
+<section>
+  <h2>{{ t.pricing.title }}</h2>
+  <p class="note">{{ t.pricing.note }}</p>
+  <div class="plans" style="margin-top:1rem">
+    {% for p in t.pricing.plans %}
+    <div class="plan">
+      <div class="name">{{ p.name }}</div>
+      <div class="price">{{ p.price }}</div>
+      <div class="desc">{{ p.desc }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<section>
+  <h2>{{ t.faq.title }}</h2>
+  {% for faq in t.faq.qa %}
+  <div class="faq-item">
+    <strong>{{ faq.q }}</strong>
+    <p>{{ faq.a }}</p>
+  </div>
+  {% endfor %}
+</section>
+
+<section>
+  <h2>{{ t.legal.title }}</h2>
+  <p class="note" style="margin:0">{{ t.legal.body }}</p>
+</section>
+{% endblock %}

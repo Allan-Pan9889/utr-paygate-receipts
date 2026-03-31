@@ -1,0 +1,47 @@
+{% extends "site_base.html" %}
+{% block title %}{{ t.tool.page_title }}{% endblock %}
+{% block extra_css %}
+<style>
+  .tool-page h1 { font-size: 1.2rem; margin: 0 0 1rem; }
+  .hint { color: var(--muted); font-size: 0.9rem; margin: 0.75rem 0; }
+  .err { color: #b71c1c; margin: 0.5rem 0; font-size: 0.92rem; }
+  label { display: block; margin-top: 0.65rem; font-size: 0.85rem; color: #444; }
+  input[type=text], input[type=file] { width: 100%; max-width: 28rem; }
+  input[type=text] { padding: 0.4rem 0.55rem; border: 1px solid var(--border); border-radius: 6px; }
+  fieldset { border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem; margin: 1rem 0; background: #fafbfc; }
+  legend { font-size: 0.88rem; padding: 0 0.35rem; }
+  .back { margin-bottom: 1rem; font-size: 0.9rem; }
+  .field-hint { font-size: 0.8rem; color: #666; display: block; margin: -0.35rem 0 0.35rem; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="tool-page">
+  <p class="back"><a href="{{ url_for('landing', lang=lang) }}">{{ t.tool.back_home }}</a></p>
+  <h1>{{ t.tool.heading }}</h1>
+  <p class="hint">{{ t.tool.intro }}<br/>
+    {{ t.tool.auto }}<br/>
+    {{ t.tool.pdf_note }}</p>
+  <p class="hint">{{ t.tool.sample | safe }}
+    <a href="{{ url_for('download_sample') }}">{{ t.tool.sample_link }}</a></p>
+  {% if error %}<p class="err">{{ error }}</p>{% endif %}
+  <form method="post" enctype="multipart/form-data" action="{{ url_for('tool', lang=lang) }}">
+    <input type="file" name="file" accept=".xlsx,.xls,.csv" required/>
+    <fieldset>
+      <legend>{{ t.tool.fieldset }}</legend>
+      <label>{{ t.tool.gateway }}</label>
+      <input type="text" name="gateway_name" value="{{ form_gateway }}" placeholder="PayGate" autocomplete="off"/>
+      <label>{{ t.tool.txn_prefix }}</label>
+      <span class="field-hint">{{ t.tool.txn_prefix_hint }}</span>
+      <input type="text" name="txn_prefix" value="{{ form_txn_prefix }}" placeholder="8691" maxlength="4"
+        pattern="^$|^[A-Za-z0-9]{4}$" inputmode="text" autocomplete="off" spellcheck="false"
+        title="{{ t.tool.txn_prefix_hint }}"
+        oninput="this.value=this.value.replace(/[^A-Za-z0-9]/g,'').slice(0,4);"/>
+      <label>{{ t.tool.time_start }}</label>
+      <input type="text" name="time_start" value="{{ form_time_start }}" placeholder="YYYY-MM-DD HH:MM:SS" autocomplete="off"/>
+      <label>{{ t.tool.time_end }}</label>
+      <input type="text" name="time_end" value="{{ form_time_end }}" placeholder="YYYY-MM-DD HH:MM:SS" autocomplete="off"/>
+    </fieldset>
+    <p><button type="submit" class="btn btn-primary">{{ t.tool.submit }}</button></p>
+  </form>
+</div>
+{% endblock %}

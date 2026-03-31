@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="{{ t.html_lang }}">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>{% block title %}{{ t.meta_title }}{% endblock %}</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --card: #fff;
+      --text: #1a1d21;
+      --muted: #5c6570;
+      --accent: #0d47a1;
+      --accent-hover: #1565c0;
+      --border: #e2e6eb;
+      --radius: 10px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      margin: 0;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.55;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; color: var(--accent-hover); }
+    .wrap { max-width: 720px; margin: 0 auto; padding: 0 1.25rem 3rem; }
+    header.site {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      padding: 1rem 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1.5rem;
+    }
+    .brand { font-weight: 700; font-size: 1.05rem; letter-spacing: -0.02em; }
+    .brand a { color: var(--text); text-decoration: none; }
+    .brand a:hover { color: var(--accent); }
+    .lang {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.88rem;
+    }
+    .lang a {
+      padding: 0.25rem 0.5rem;
+      border-radius: 6px;
+      color: var(--muted);
+    }
+    .lang a.active {
+      background: #e3ecf7;
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .lang span { color: var(--muted); user-select: none; }
+    section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.35rem 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+    section h2 {
+      margin: 0 0 0.85rem;
+      font-size: 1.05rem;
+      font-weight: 650;
+    }
+    ul.plain { margin: 0; padding-left: 1.2rem; }
+    ul.plain li { margin: 0.35rem 0; color: var(--muted); }
+    .hero h1 {
+      font-size: 1.65rem;
+      line-height: 1.25;
+      margin: 0 0 0.75rem;
+      letter-spacing: -0.03em;
+    }
+    .hero p.sub { color: var(--muted); margin: 0 0 1.25rem; font-size: 1.02rem; }
+    .cta-row { display: flex; flex-wrap: wrap; gap: 0.65rem; }
+    .btn {
+      display: inline-block;
+      padding: 0.55rem 1.1rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.92rem;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff !important;
+      text-decoration: none !important;
+    }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-ghost {
+      background: #fff;
+      border: 1px solid var(--border);
+      color: var(--text) !important;
+    }
+    .feat-grid {
+      display: grid;
+      gap: 1rem;
+    }
+    @media (min-width: 520px) {
+      .feat-grid { grid-template-columns: 1fr 1fr; }
+    }
+    .feat-item strong { display: block; margin-bottom: 0.25rem; font-size: 0.95rem; }
+    .feat-item span { font-size: 0.88rem; color: var(--muted); }
+    .plans {
+      display: grid;
+      gap: 0.85rem;
+    }
+    @media (min-width: 560px) {
+      .plans { grid-template-columns: repeat(3, 1fr); }
+    }
+    .plan {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.85rem;
+      font-size: 0.88rem;
+    }
+    .plan .name { font-weight: 700; margin-bottom: 0.35rem; }
+    .plan .price { color: var(--accent); font-weight: 600; margin-bottom: 0.35rem; }
+    .plan .desc { color: var(--muted); }
+    .faq-item { margin-bottom: 1rem; }
+    .faq-item:last-child { margin-bottom: 0; }
+    .faq-item strong { display: block; margin-bottom: 0.25rem; font-size: 0.92rem; }
+    .faq-item p { margin: 0; font-size: 0.88rem; color: var(--muted); }
+    footer.site {
+      margin-top: 2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    .note { font-size: 0.82rem; color: var(--muted); margin-top: 0.5rem; }
+  </style>
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+  <div class="wrap">
+    <header class="site">
+      <div class="brand"><a href="{{ url_for('landing', lang=lang) }}">{{ t.nav.brand }}</a></div>
+      <nav class="lang" aria-label="Language">
+        {% if request.endpoint == 'tool' %}
+        <a href="{{ url_for('tool', lang='zh') }}" class="{{ 'active' if lang == 'zh' else '' }}">{{ t.nav.switch_zh }}</a>
+        <span>|</span>
+        <a href="{{ url_for('tool', lang='en') }}" class="{{ 'active' if lang == 'en' else '' }}">{{ t.nav.switch_en }}</a>
+        {% else %}
+        <a href="{{ url_for('landing', lang='zh') }}" class="{{ 'active' if lang == 'zh' else '' }}">{{ t.nav.switch_zh }}</a>
+        <span>|</span>
+        <a href="{{ url_for('landing', lang='en') }}" class="{{ 'active' if lang == 'en' else '' }}">{{ t.nav.switch_en }}</a>
+        {% endif %}
+        <span>·</span>
+        <a href="{{ url_for('tool', lang=lang) }}">{{ t.nav.tool }}</a>
+      </nav>
+    </header>
+    {% block content %}{% endblock %}
+    {% block site_footer %}
+    <footer class="site">
+      <p>{{ t.footer.rights }} {{ t.footer.privacy }}</p>
+    </footer>
+    {% endblock %}
+  </div>
+</body>
+</html>
