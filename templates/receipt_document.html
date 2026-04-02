@@ -4,11 +4,9 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>{{ page_title }}</title>
-  <!-- Inter 由 Google Fonts 加载；PDF 在 Railway/本机 Playwright 内渲染（非 Vercel 内嵌浏览器），可稳定拉取字体 -->
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&amp;display=block" rel="stylesheet"/>
+  <!-- Inter 内联于 font_embed_css（woff2 base64），不依赖外网，避免线上超时回退 ReportLab -->
   <style>
+    {{ font_embed_css | safe }}
     :root {
       --page-bg: #e8eaed;
       --card: #ffffff;
@@ -37,6 +35,8 @@
       body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .page-break { page-break-after: always; }
       .no-break { break-inside: avoid; page-break-inside: avoid; }
+      .amount { break-inside: avoid; page-break-inside: avoid; }
+      .success-row { break-inside: avoid; page-break-inside: avoid; }
     }
     .sheet { padding: 12px; }
     .grid-6 {
@@ -48,6 +48,12 @@
       margin: 0 auto;
     }
     .card-wrap { display: flex; justify-content: center; align-items: flex-start; }
+    .card > header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+    }
     .card {
       width: 100%;
       max-width: 22rem;
@@ -79,16 +85,34 @@
       color: var(--text);
       font-variant-numeric: tabular-nums;
       letter-spacing: -0.02em;
-      margin-top: 0.25rem;
+      margin: 0.35rem 0 0;
+      padding: 0 0.25rem;
+      width: 100%;
+      position: relative;
+      z-index: 0;
+      line-height: 1.2;
     }
     .success-row {
       display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
       align-items: center;
       justify-content: center;
-      gap: 0.35rem;
-      margin-top: 0.5rem;
+      gap: 0.4rem;
+      margin-top: 0.6rem;
+      width: 100%;
+      min-height: 2.5rem;
+      position: relative;
+      z-index: 1;
+      isolation: isolate;
     }
-    .success-row svg { flex-shrink: 0; }
+    .success-row svg {
+      flex: 0 0 36px;
+      width: 36px;
+      height: 36px;
+      display: block;
+      overflow: visible;
+    }
     .success-txt {
       font-size: 1.55rem;
       font-weight: 700;

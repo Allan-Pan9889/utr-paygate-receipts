@@ -47,16 +47,13 @@ def render_pdf(
             ]
             browser = p.chromium.launch(args=launch_args)
             page = browser.new_page()
-            # 与 paygate_receipts.html_pdf._playwright_html_to_pdf_page 一致：等 Google Fonts 后再打印
-            try:
-                page.set_content(html, wait_until="networkidle", timeout=90000)
-            except Exception:
-                page.set_content(html, wait_until="load", timeout=90000)
+            # 与 paygate_receipts.html_pdf._playwright_html_to_pdf_page 一致（HTML 已内联 woff2）
+            page.set_content(html, wait_until="load", timeout=90000)
             try:
                 page.evaluate("() => document.fonts.ready")
             except Exception:
                 pass
-            page.wait_for_timeout(2200)
+            page.wait_for_timeout(900)
             page.emulate_media(media="print")
             pdf_bytes = page.pdf(
                 format="A4",

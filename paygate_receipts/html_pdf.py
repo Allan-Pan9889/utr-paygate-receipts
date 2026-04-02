@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 import math
 import os
 from pathlib import Path
@@ -14,6 +15,34 @@ from paygate_receipts.settings import AppSettings
 
 _ROOT = Path(__file__).resolve().parent.parent
 _TEMPLATES = _ROOT / "templates"
+_FONT_DIR = _TEMPLATES / "fonts"
+# Inter 字重与文件名（@fontsource/inter latin 子集）
+_INTER_WOFF2: tuple[tuple[str, int], ...] = (
+    ("inter-latin-400.woff2", 400),
+    ("inter-latin-500.woff2", 500),
+    ("inter-latin-600.woff2", 600),
+    ("inter-latin-700.woff2", 700),
+)
+
+
+def _inter_font_face_embed_css() -> str:
+    """将 Inter woff2 以 data: URL 内联，避免 Playwright 再请求外网字体（加速、避免 Vercel 超时回退 ReportLab）。"""
+    chunks: list[str] = []
+    for fname, weight in _INTER_WOFF2:
+        p = _FONT_DIR / fname
+        if not p.is_file():
+            continue
+        b64 = base64.b64encode(p.read_bytes()).decode("ascii")
+        chunks.append(
+            f"""@font-face {{
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: {weight};
+  font-display: block;
+  src: url(data:font/woff2;base64,{b64}) format('woff2');
+}}"""
+        )
+    return "\n".join(chunks)
 
 
 def _safe_str(v: Any) -> str:
@@ -81,21 +110,19 @@ def render_receipt_html(rows: list[ReceiptRow], settings: AppSettings | None = N
         pages=pages,
         gateway_name=s.gateway_name,
         page_title=f"{s.gateway_name} Receipt",
+        font_embed_css=_inter_font_face_embed_css(),
     )
 
 
 def _playwright_html_to_pdf_page(page: object, html: str, out_path: str | Path) -> None:
-    """Playwright Page：加载 HTML（含 Google Fonts）→ 等字体 → 打印 PDF。与 pdf_render_service 逻辑保持一致。"""
+    """Playwright Page：加载 HTML（内联字体无需外网）→ 等字体 → 打印 PDF。与 pdf_render_service 逻辑保持一致。"""
     out = Path(out_path)
-    try:
-        page.set_content(html, wait_until="networkidle", timeout=90000)
-    except Exception:
-        page.set_content(html, wait_until="load", timeout=90000)
+    page.set_content(html, wait_until="load", timeout=90000)
     try:
         page.evaluate("() => document.fonts.ready")
     except Exception:
         pass
-    page.wait_for_timeout(2200)
+    page.wait_for_timeout(900)
     page.emulate_media(media="print")
     page.pdf(
         path=str(out),
@@ -156,7 +183,7 @@ def html_to_pdf_remote(html: str, out_path: str) -> None:
     out = Path(out_path)
     out.parent.mkdir(parents=True, exist_ok=True)
     try:
-        with httpx.Client(timeout=120.0) as client:
+        with httpx.Client(timeout=180.0) as client:
             r = client.post(url, json={"html": html}, headers=headers)
         r.raise_for_status()
         if not r.content.startswith(b"%PDF"):
