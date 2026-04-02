@@ -54,7 +54,7 @@
 ## 3. 超时与套餐
 
 - 远程渲染 + 大 HTML 可能较慢；`html_to_pdf_remote` 使用 **180s** 超时。
-- Vercel 需在 **`vercel.json`** 中配置足够 **`maxDuration`**（已示例 60s）；若仍超时，需升级套餐或提高函数时限。
+- 函数 **`maxDuration`** 在 Vercel **项目 Settings → Functions** 中配置（勿在 `vercel.json` 的 `functions` 里写 `api/index.py`，否则构建会报 unmatched pattern）。若生成 PDF 超时，需提高时限或升级套餐。
 - Railway 侧需保证容器有足够内存（Playwright + Chromium）。
 
 ---
@@ -80,7 +80,7 @@
 | 文件 | 作用 |
 |------|------|
 | `api/index.py` | Vercel Serverless 入口 |
-| `vercel.json` | 路由与函数 `maxDuration` |
+| `vercel.json` | 路由（`rewrites`）；**勿**在 `functions` 里写死 `api/index.py`（Vercel CLI 50+ 会校验失败）。函数时长在 Vercel 项目 **Settings → Functions** 里配置。 |
 | `pdf_render_service/main.py` | 远程 `POST /render` 实现 |
 
 本地完整 Playwright：`pip install -r requirements-local.txt && playwright install chromium`。
