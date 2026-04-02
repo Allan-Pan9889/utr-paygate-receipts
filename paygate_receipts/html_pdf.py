@@ -5,6 +5,7 @@ from __future__ import annotations
 import base64
 import math
 import os
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal
 
@@ -17,6 +18,18 @@ _ROOT = Path(__file__).resolve().parent.parent
 _TEMPLATES = _ROOT / "templates"
 _FONT_DIR = _TEMPLATES / "fonts"
 # Inter 字重与文件名（@fontsource/inter latin 子集）
+@dataclass(frozen=True)
+class ReceiptPdfResult:
+    """PDF 生成结果；`detail` 便于在响应头 X-PDF-Detail 中排查为何未走 Playwright。"""
+
+    engine: Literal["playwright", "reportlab"]
+    detail: str | None = None
+
+
+def _ascii_header_snippet(s: str, max_len: int = 220) -> str:
+    return s.encode("ascii", "replace").decode("ascii")[:max_len]
+
+
 _INTER_WOFF2: tuple[tuple[str, int], ...] = (
     ("inter-latin-400.woff2", 400),
     ("inter-latin-500.woff2", 500),
@@ -219,39 +232,56 @@ def _use_reportlab_backend() -> bool:
     return v in ("reportlab", "rl")
 
 
+def _reportlab_only_reason() -> str:
+    """直接走 ReportLab（非回退）时的可读原因，供 X-PDF-Detail。"""
+    if os.environ.get("USE_REPORTLAB", "").strip().lower() in ("1", "true", "yes", "on"):
+        return "USE_REPORTLAB=1"
+    if os.environ.get("PDF_BACKEND", "").strip().lower() in ("reportlab", "rl"):
+        return "PDF_BACKEND=reportlab"
+    if os.environ.get("VERCEL") == "1":
+        return "VERCEL=1 without PDF_RENDER_URL; set PDF_RENDER_URL to remote Playwright service"
+    return "reportlab_backend_selected"
+
+
 def build_receipt_pdf(
     path: str,
     rows: list[ReceiptRow],
     settings: AppSettings | None = None,
-) -> Literal["playwright", "reportlab"]:
-    """本地 Playwright；Vercel 配 PDF_RENDER_URL 则远程 Playwright；否则 ReportLab。返回实际引擎。"""
+) -> ReceiptPdfResult:
+    """本地 Playwright；Vercel 配 PDF_RENDER_URL 则远程 Playwright；否则 ReportLab。"""
     if _use_reportlab_backend():
         from paygate_receipts.receipt_pdf import build_multi_page_pdf
 
         build_multi_page_pdf(path, rows, layout="grid6", settings=settings)
-        return "reportlab"
+        return ReceiptPdfResult("reportlab", _reportlab_only_reason())
     html = render_receipt_html(rows, settings=settings)
     if os.environ.get("PDF_RENDER_URL", "").strip():
         try:
             html_to_pdf_remote(html, path)
-            return "playwright"
-        except RuntimeError:
+            return ReceiptPdfResult("playwright", None)
+        except RuntimeError as e:
             from paygate_receipts.receipt_pdf import build_multi_page_pdf
 
             build_multi_page_pdf(path, rows, layout="grid6", settings=settings)
-            return "reportlab"
+            return ReceiptPdfResult(
+                "reportlab",
+                "fallback_after_remote_playwright: " + _ascii_header_snippet(str(e)),
+            )
     try:
         import playwright  # noqa: F401
     except ImportError:
         from paygate_receipts.receipt_pdf import build_multi_page_pdf
 
         build_multi_page_pdf(path, rows, layout="grid6", settings=settings)
-        return "reportlab"
+        return ReceiptPdfResult("reportlab", "no playwright package (pip install playwright)")
     try:
         html_to_pdf(html, path)
-        return "playwright"
-    except RuntimeError:
+        return ReceiptPdfResult("playwright", None)
+    except RuntimeError as e:
         from paygate_receipts.receipt_pdf import build_multi_page_pdf
 
         build_multi_page_pdf(path, rows, layout="grid6", settings=settings)
-        return "reportlab"
+        return ReceiptPdfResult(
+            "reportlab",
+            "fallback_after_local_playwright: " + _ascii_header_snippet(str(e)),
+        )

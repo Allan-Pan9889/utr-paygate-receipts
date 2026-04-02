@@ -1,54 +1,86 @@
-# 将本项目部署到 Vercel（说明）
+# 部署说明：Vercel 主站 + Playwright PDF
 
-## 0. 如何确认线上用的是哪种 PDF？
+## 结论（能否走 Playwright？）
 
-生成并下载 PDF 时，响应头里会有 **`X-PDF-Engine`**：
+| 环境 | Playwright 方式 |
+|------|-----------------|
+| **本机** | 安装 `requirements-local.txt` 并执行 `playwright install chromium`，进程内 Chromium 打印 PDF。 |
+| **Vercel Serverless** | **不能**在函数里打包 Chromium（体积与运行时限制）。 |
+| **Vercel + 远程服务** | **可以**：设置环境变量 **`PDF_RENDER_URL`**，指向 Railway（或其它）上部署的 **`pdf_render_service`**，由该服务内 **Playwright** 生成 PDF，效果与本地 HTML 路径一致。 |
 
-- **`reportlab`**：Vercel 上固定使用（Serverless 单包 **≤245MB**，无法同时打包 Python 依赖与 Playwright+Chromium）。
-- **`playwright`**：仅本地安装 `requirements-local.txt` 且未强制 ReportLab 时出现。
-
-在浏览器 **开发者工具 → Network** 里选中 `paygate_receipts.pdf`，查看 **Response Headers** 即可。
+未配置 `PDF_RENDER_URL` 时，Vercel 上会走 **ReportLab**（与 HTML 版式接近但非同一引擎）。
 
 ---
 
-## 1. PDF 生成策略
+## 如何确认当前用的是哪种引擎？
 
-- **Vercel（`VERCEL=1`）**：代码中固定走 **ReportLab**，与是否设置 `USE_REPORTLAB` 无关（避免超包体上限）。
-- **本地**：安装 **`pip install -r requirements-local.txt && playwright install chromium`** 后，默认 **HTML + Playwright**；也可设 **`USE_REPORTLAB=1`** 与线上一致。
+下载 PDF 时查看响应头：
 
-## 2. 仓库里已包含的配置
+- **`X-PDF-Engine`**: `playwright` 或 `reportlab`
+- **`X-PDF-Detail`**（可选）: 若未走 Playwright 或发生回退，会给出简短英文说明（例如未配置 URL、远程 HTTP 错误等）。
+
+浏览器：**开发者工具 → Network → 选中 PDF 响应 → Response Headers**。
+
+---
+
+## 1. 在 Railway 部署 Playwright 渲染服务
+
+仓库根目录 **`Dockerfile`** + **`railway.json`** 已配置为仅构建 **`pdf_render_service`**（FastAPI + Playwright 官方镜像）。
+
+1. 在 [Railway](https://railway.app) 新建项目，从本 Git 仓库部署。
+2. 确保使用根目录 Dockerfile（与 `railway.json` 一致）。
+3. 部署完成后得到公网地址，例如 `https://xxx.up.railway.app`。
+4. （推荐）设置 **`PDF_RENDER_SECRET`**（任意强随机字符串）；服务端若配置了该变量，则 **`POST /render`** 要求头：`Authorization: Bearer <同一密钥>`。
+
+健康检查：`GET /health` → `{"status":"ok"}`。
+
+---
+
+## 2. 在 Vercel 配置环境变量
+
+在项目 **Settings → Environment Variables** 添加：
+
+| 变量 | 说明 |
+|------|------|
+| **`PDF_RENDER_URL`** | Railway 服务根 URL，**不要**带路径末尾的 `/render`（代码会自动拼接 `/render`）。例：`https://xxx.up.railway.app` |
+| **`PDF_RENDER_SECRET`** | 与 Railway 上 **`PDF_RENDER_SECRET`** **完全一致**（若 Railway 未设置密钥，则 Vercel 也不要设）。 |
+
+**不要**在 Vercel 设置 `USE_REPORTLAB=1`，否则即使用户配置了 `PDF_RENDER_URL` 也会强制 ReportLab。
+
+重新部署 Vercel 后，再生成 PDF，`X-PDF-Engine` 应为 **`playwright`**。
+
+---
+
+## 3. 超时与套餐
+
+- 远程渲染 + 大 HTML 可能较慢；`html_to_pdf_remote` 使用 **180s** 超时。
+- Vercel 需在 **`vercel.json`** 中配置足够 **`maxDuration`**（已示例 60s）；若仍超时，需升级套餐或提高函数时限。
+- Railway 侧需保证容器有足够内存（Playwright + Chromium）。
+
+---
+
+## 4. 故障排查
+
+1. **`X-PDF-Engine: reportlab`** 且 **`X-PDF-Detail`** 含 `without PDF_RENDER_URL`  
+   → 未配置或拼写错误；检查 Vercel 环境变量是否对 **Production** 生效并已重新部署。
+
+2. **`fallback_after_remote_playwright`** 且含 **`HTTP 401`**  
+   → 仅一侧配置了 `PDF_RENDER_SECRET`，或 Bearer 不一致。
+
+3. **`HTTP 502/503` / 连接失败**  
+   → Railway 服务未启动、域名错误、或冷启动过慢；访问 `/health` 确认。
+
+4. 本地想强制与线上一致（仅 ReportLab）  
+   → `USE_REPORTLAB=1` 或 `PDF_BACKEND=reportlab`。
+
+---
+
+## 5. 其它文件
 
 | 文件 | 作用 |
 |------|------|
-| `api/index.py` | Serverless 入口，暴露 Flask `app` |
-| `vercel.json` | 路由重写到 `/api/index`（依赖由 Vercel 默认 `pip install -r requirements.txt`） |
-| `runtime.txt` | Python 版本（如 `python3.12`） |
-| `.vercelignore` | 排除 `.venv` 等 |
-| `requirements-local.txt` | 本地可选：Playwright |
+| `api/index.py` | Vercel Serverless 入口 |
+| `vercel.json` | 路由与函数 `maxDuration` |
+| `pdf_render_service/main.py` | 远程 `POST /render` 实现 |
 
-## 3. 部署命令
-
-```bash
-npx vercel login
-npx vercel --prod
-```
-
-绑定自定义域名：项目 → **Settings** → **Domains**。
-
-## 4. 超时与套餐
-
-- 生成 PDF 可能超过 **Hobby 默认 10s** 函数时限。若经常超时，需在 Vercel 中提高 **Function Max Duration**（通常需 **Pro**）。
-
-## 5. 密钥
-
-- 生产环境请用环境变量配置 `FLASK_SECRET_KEY` 等，勿把密钥写进仓库。
-
-## 6. 本地模拟线上
-
-```bash
-vercel dev
-```
-
----
-
-**结论**：线上为 **ReportLab** 水单；需要与 HTML 完全一致的效果请在 **本地** 使用 `requirements-local.txt` + Playwright。
+本地完整 Playwright：`pip install -r requirements-local.txt && playwright install chromium`。

@@ -113,7 +113,7 @@ def tool():
                             transaction_time_end=request.form.get("time_end"),
                         )
                         rows = apply_row_defaults(rows, settings)
-                        pdf_engine = build_receipt_pdf(
+                        pdf_res = build_receipt_pdf(
                             str(out), rows, settings=settings
                         )
                         resp = send_file(
@@ -122,7 +122,9 @@ def tool():
                             download_name="paygate_receipts.pdf",
                             mimetype="application/pdf",
                         )
-                        resp.headers["X-PDF-Engine"] = pdf_engine
+                        resp.headers["X-PDF-Engine"] = pdf_res.engine
+                        if pdf_res.detail:
+                            resp.headers["X-PDF-Detail"] = pdf_res.detail[:500]
                         return resp
             except ValueError as e:
                 err = str(e)

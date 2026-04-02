@@ -67,10 +67,11 @@ def main() -> None:
         transaction_time_end=args.time_end,
     )
     rows = apply_row_defaults(rows, settings)
-    engine = build_receipt_pdf(str(out), rows, settings=settings)
+    pdf_res = build_receipt_pdf(str(out), rows, settings=settings)
     pages = (len(rows) + 5) // 6
+    extra = f" | {pdf_res.detail}" if pdf_res.detail else ""
     print(
-        f"已生成：{out}（共 {len(rows)} 笔；约 {pages} 页；PDF 引擎：{engine}）"
+        f"已生成：{out}（共 {len(rows)} 笔；约 {pages} 页；PDF 引擎：{pdf_res.engine}{extra}）"
     )
 
 
