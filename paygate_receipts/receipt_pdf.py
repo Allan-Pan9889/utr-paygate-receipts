@@ -20,8 +20,10 @@ COLOR_SHADOW = colors.Color(0.82, 0.84, 0.86)
 COLOR_BRAND = colors.HexColor("#2563eb")
 COLOR_KEY = colors.HexColor("#1e40af")
 COLOR_TEXT = colors.HexColor("#333333")
-COLOR_SUCCESS = colors.HexColor("#28a745")
+COLOR_LABEL = colors.HexColor("#6b7280")
+COLOR_SUCCESS = colors.HexColor("#16a34a")
 COLOR_LINE = colors.HexColor("#e0e0e0")
+COLOR_SECTION_LABEL = colors.HexColor("#9ca3af")
 COLOR_FOOTER = colors.HexColor("#666666")
 COLOR_PCI = colors.HexColor("#1e7e34")
 COLOR_SSL = colors.HexColor("#1565c0")
@@ -95,35 +97,46 @@ def _draw_success_row(
     c: Canvas, cx: float, y_baseline: float, fb: str, amt_fs: float
 ) -> float:
     """
-    盾牌 +「Success」；Success 字号与金额 amt_fs 一致。
+    圆环对勾 +「Success」，与 HTML 水单一致；图标不向 y 正方向侵入金额区（旧盾牌会叠在 Rs/₹ 上）。
     返回本行占用高度（用于下移游标）。
     """
-    fs = amt_fs
-    k = fs / 14.0
-    shield_cx = cx - 26 * k
-    scy = y_baseline + 2.8 * k
+    fs = max(amt_fs * 0.92, 13.0)
+    R = fs * 0.48
+    gap = fs * 0.25
+    c.setFont(fb, fs)
+    tw = c.stringWidth("Success", fb, fs)
+    group_w = 2 * R + gap + tw
+    icon_cx = cx - group_w / 2 + R
+    cy = y_baseline + fs * 0.32
+
     c.saveState()
-    c.setFillColor(COLOR_SUCCESS)
-    sh = c.beginPath()
-    sh.moveTo(shield_cx, scy + 10 * k)
-    sh.lineTo(shield_cx - 7 * k, scy + 2.5 * k)
-    sh.lineTo(shield_cx - 7 * k, scy - 5.5 * k)
-    sh.lineTo(shield_cx, scy - 11 * k)
-    sh.lineTo(shield_cx + 7 * k, scy - 5.5 * k)
-    sh.lineTo(shield_cx + 7 * k, scy + 2.5 * k)
-    sh.close()
-    c.drawPath(sh, stroke=0, fill=1)
-    c.setStrokeColor(colors.white)
-    c.setLineWidth(1.05 * k)
+    c.setStrokeColor(COLOR_SUCCESS)
+    c.setLineWidth(max(1.15, fs * 0.11))
+    c.circle(icon_cx, cy, R, stroke=1, fill=0)
+
+    # 圆内对勾（与 HTML SVG 视觉接近）
     c.setLineCap(1)
-    c.line(shield_cx - 2.5 * k, scy - 2 * k, shield_cx - 0.8 * k, scy - 4.5 * k)
-    c.line(shield_cx - 0.8 * k, scy - 4.5 * k, shield_cx + 3.5 * k, scy + 1.5 * k)
+    c.setLineJoin(1)
+    c.setLineWidth(max(1.05, fs * 0.095))
+    ck = R * 0.42
+    x1 = icon_cx - ck * 0.55
+    y1 = cy - ck * 0.08
+    x2 = icon_cx - ck * 0.08
+    y2 = cy - ck * 0.52
+    x3 = icon_cx + ck * 0.85
+    y3 = cy + ck * 0.48
+    p = c.beginPath()
+    p.moveTo(x1, y1)
+    p.lineTo(x2, y2)
+    p.lineTo(x3, y3)
+    c.drawPath(p, stroke=1, fill=0)
     c.restoreState()
+
     c.setFont(fb, fs)
     c.setFillColor(COLOR_SUCCESS)
-    tx = shield_cx + 11 * k + fs * 0.15
+    tx = icon_cx + R + gap
     c.drawString(tx, y_baseline, "Success")
-    return max(fs + 16 * k, 24 * k)
+    return max(2.1 * R + fs * 0.15, fs + 6.0)
 
 
 def _draw_key_icon(c: Canvas, cx: float, cy: float, fr: str, size: float) -> None:
@@ -159,7 +172,7 @@ def _divider_title(
     c.setLineWidth(0.45)
     c.line(x_left, y_line, cx - tw / 2 - gap, y_line)
     c.line(cx + tw / 2 + gap, y_line, x_right, y_line)
-    c.setFillColor(COLOR_TEXT)
+    c.setFillColor(COLOR_SECTION_LABEL)
     c.setFont(font, fs)
     c.drawString(cx - tw / 2, y_baseline, title)
 
@@ -217,16 +230,10 @@ def draw_noahpay_slip(
     cur += 14 * scale
 
     amt_fs = max(13.0, 15.5 * scale)
-    _draw_amount_scaled(
-        c,
-        cx,
-        top - cur - amt_fs * 0.72,
-        row.amount,
-        fb,
-        amt_fs,
-        f_inr,
-    )
-    cur += amt_fs + 6 * scale
+    y_amt = top - cur
+    _draw_amount_scaled(c, cx, y_amt, row.amount, fb, amt_fs, f_inr)
+    # 金额与 Success 之间留出足够垂直距离，避免状态图标与数字重叠
+    cur += amt_fs + max(11.0, 13.0 * scale)
 
     row_h = _draw_success_row(c, cx, top - cur, fb, amt_fs)
     cur += row_h + 10 * scale
@@ -236,25 +243,27 @@ def draw_noahpay_slip(
     lh = max(9.0, 9.8 * scale)
 
     _divider_title(
-        c, cx, top - cur, xl, xr, "Beneficiary Details", fb, sec_fs
+        c, cx, top - cur, xl, xr, "BENEFICIARY DETAILS", fb, sec_fs
     )
     cur += sec_fs + 5 * scale
 
-    c.setFont(fr, row_fs)
     for label, val in (
         ("Beneficiary Name", _beneficiary_display(row.beneficiary_name)),
         ("IFSC Code", _safe_str(row.ifsc_code)),
         ("Account Number", _safe_str(row.account_number)),
     ):
-        c.setFillColor(COLOR_TEXT)
+        c.setFont(fr, row_fs)
+        c.setFillColor(COLOR_LABEL)
         c.drawString(xl, top - cur, label)
-        tw = c.stringWidth(val, fr, row_fs)
+        c.setFont(fb, row_fs)
+        c.setFillColor(COLOR_TEXT)
+        tw = c.stringWidth(val, fb, row_fs)
         c.drawString(xr - tw, top - cur, val)
         cur += lh
 
     cur += 5 * scale
     _divider_title(
-        c, cx, top - cur, xl, xr, "Transaction Particulars", fb, sec_fs
+        c, cx, top - cur, xl, xr, "TRANSACTION PARTICULARS", fb, sec_fs
     )
     cur += sec_fs + 5 * scale
 
@@ -264,9 +273,11 @@ def draw_noahpay_slip(
         ("UTR Number", _safe_str(row.utr_number)),
     ):
         c.setFont(fr, row_fs)
-        c.setFillColor(COLOR_TEXT)
+        c.setFillColor(COLOR_LABEL)
         c.drawString(xl, top - cur, label)
-        tw = c.stringWidth(val, fr, row_fs)
+        c.setFont(fb, row_fs)
+        c.setFillColor(COLOR_TEXT)
+        tw = c.stringWidth(val, fb, row_fs)
         c.drawString(xr - tw, top - cur, val)
         cur += lh
 
