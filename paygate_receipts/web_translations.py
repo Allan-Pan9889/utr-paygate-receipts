@@ -10,7 +10,6 @@ _UI_ZH: dict[str, Any] = {
     "meta_title": "印度网关支付水单 · Excel 转 PDF | PayGate Receipt",
     "nav": {
         "brand": "PayGate 水单",
-        "home": "首页",
         "tool": "生成工具",
         "switch_en": "English",
         "switch_zh": "中文",
@@ -136,7 +135,6 @@ _UI_EN: dict[str, Any] = {
     "meta_title": "India Gateway Payment Receipts · Excel to PDF | PayGate Receipt",
     "nav": {
         "brand": "PayGate Receipt",
-        "home": "Home",
         "tool": "Generator",
         "switch_en": "English",
         "switch_zh": "中文",
