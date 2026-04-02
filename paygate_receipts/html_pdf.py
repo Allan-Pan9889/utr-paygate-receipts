@@ -84,6 +84,29 @@ def render_receipt_html(rows: list[ReceiptRow], settings: AppSettings | None = N
     )
 
 
+def _playwright_html_to_pdf_page(page: object, html: str, out_path: str | Path) -> None:
+    """Playwright Page：加载 HTML（含 Google Fonts）→ 等字体 → 打印 PDF。与 pdf_render_service 逻辑保持一致。"""
+    out = Path(out_path)
+    try:
+        page.set_content(html, wait_until="networkidle", timeout=90000)
+    except Exception:
+        page.set_content(html, wait_until="load", timeout=90000)
+    try:
+        page.evaluate("() => document.fonts.ready")
+    except Exception:
+        pass
+    page.wait_for_timeout(2200)
+    page.emulate_media(media="print")
+    page.pdf(
+        path=str(out),
+        format="A4",
+        landscape=True,
+        print_background=True,
+        margin={"top": "8mm", "right": "8mm", "bottom": "8mm", "left": "8mm"},
+        prefer_css_page_size=True,
+    )
+
+
 def html_to_pdf(html: str, out_path: str) -> None:
     """使用服务端 Chromium（Playwright）将 HTML 打印为横向 A4 PDF；访客无需安装任何本地组件。"""
     try:
@@ -110,23 +133,7 @@ def html_to_pdf(html: str, out_path: str) -> None:
             )
             browser = p.chromium.launch(args=launch_args)
             page = browser.new_page()
-            # 模板已无外网字体/CSS，避免 networkidle 在无外联资源时偶发异常
-            page.set_content(html, wait_until="load")
-            try:
-                page.evaluate("() => document.fonts.ready")
-            except Exception:
-                pass
-            _vercel = os.environ.get("VERCEL") == "1"
-            page.wait_for_timeout(1400 if _vercel else 700)
-            page.emulate_media(media="print")
-            page.pdf(
-                path=str(out),
-                format="A4",
-                landscape=True,
-                print_background=True,
-                margin={"top": "8mm", "right": "8mm", "bottom": "8mm", "left": "8mm"},
-                prefer_css_page_size=True,
-            )
+            _playwright_html_to_pdf_page(page, html, out)
             browser.close()
     except Exception as e:
         raise RuntimeError(

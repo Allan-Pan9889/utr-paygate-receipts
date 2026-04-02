@@ -4,7 +4,10 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>{{ page_title }}</title>
-  <!-- 仅内联 CSS，不请求 Google Fonts：Vercel 无服务器里外链字体常超时/失败，导致 PDF 与本地不一致 -->
+  <!-- Inter 由 Google Fonts 加载；PDF 在 Railway/本机 Playwright 内渲染（非 Vercel 内嵌浏览器），可稳定拉取字体 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&amp;display=block" rel="stylesheet"/>
   <style>
     :root {
       --page-bg: #e8eaed;
@@ -22,11 +25,13 @@
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+      font-family: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       font-size: 14px;
       color: var(--text);
       background: var(--page-bg);
       -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: geometricPrecision;
     }
     @media print {
       body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
