@@ -12,6 +12,7 @@
   legend { font-size: 0.88rem; padding: 0 0.35rem; }
   .back { margin-bottom: 1rem; font-size: 0.9rem; }
   .field-hint { font-size: 0.8rem; color: #666; display: block; margin: -0.35rem 0 0.35rem; }
+  .pdf-meta { white-space: pre-wrap; word-break: break-word; }
 </style>
 {% endblock %}
 {% block content %}
@@ -23,8 +24,9 @@
     {{ t.tool.pdf_note }}</p>
   <p class="hint">{{ t.tool.sample | safe }}
     <a href="{{ url_for('download_sample') }}">{{ t.tool.sample_link }}</a></p>
-  {% if error %}<p class="err">{{ error }}</p>{% endif %}
-  <form method="post" enctype="multipart/form-data" action="{{ url_for('tool', lang=lang) }}">
+  {% if error %}<p class="err" id="server-err">{{ error }}</p>{% endif %}
+  <p class="hint pdf-meta" id="pdf-meta" hidden></p>
+  <form id="receipt-form" method="post" enctype="multipart/form-data" action="{{ url_for('tool', lang=lang) }}" data-busy="{{ t.tool.pdf_busy }}" data-done="{{ t.tool.pdf_done }}" data-pw="{{ t.tool.pdf_engine_playwright }}" data-rl="{{ t.tool.pdf_engine_reportlab }}" data-dlabel="{{ t.tool.pdf_detail_label }}" data-unknown="{{ t.tool.pdf_engine_unknown }}">
     <input type="file" name="file" accept=".xlsx,.xls,.csv" required/>
     <fieldset>
       <legend>{{ t.tool.fieldset }}</legend>
@@ -41,7 +43,72 @@
       <label>{{ t.tool.time_end }}</label>
       <input type="text" name="time_end" value="{{ form_time_end }}" placeholder="YYYY-MM-DD HH:MM:SS" autocomplete="off"/>
     </fieldset>
-    <p><button type="submit" class="btn btn-primary">{{ t.tool.submit }}</button></p>
+    <p><button type="submit" class="btn btn-primary" id="pdf-submit">{{ t.tool.submit }}</button></p>
   </form>
 </div>
+<script>
+(function () {
+  var form = document.getElementById("receipt-form");
+  var meta = document.getElementById("pdf-meta");
+  var btn = document.getElementById("pdf-submit");
+  if (!form || !meta || !btn) return;
+  form.addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var fd = new FormData(form);
+    var prevText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = form.getAttribute("data-busy") || "…";
+    meta.hidden = true;
+    meta.textContent = "";
+    meta.classList.remove("err");
+    var srvErr = document.getElementById("server-err");
+    if (srvErr) srvErr.remove();
+    fetch(form.action, { method: "POST", body: fd, credentials: "same-origin" })
+      .then(function (res) {
+        var ct = (res.headers.get("Content-Type") || "").toLowerCase();
+        if (ct.indexOf("application/pdf") !== -1) {
+          var eng = (res.headers.get("X-PDF-Engine") || res.headers.get("x-pdf-engine") || "").toLowerCase();
+          var det = res.headers.get("X-PDF-Detail") || res.headers.get("x-pdf-detail") || "";
+          var done = form.getAttribute("data-done") || "";
+          var labelPw = form.getAttribute("data-pw") || "Playwright";
+          var labelRl = form.getAttribute("data-rl") || "ReportLab";
+          var dlab = form.getAttribute("data-dlabel") || "";
+          var unk = form.getAttribute("data-unknown") || "?";
+          var engLabel =
+            eng === "playwright" ? labelPw : eng === "reportlab" ? labelRl : unk;
+          var lines = [done + " " + engLabel];
+          if (det) lines.push(dlab + " " + det);
+          meta.textContent = lines.join("\n");
+          meta.hidden = false;
+          return res.blob().then(function (blob) {
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement("a");
+            a.href = url;
+            a.download = "paygate_receipts.pdf";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+          });
+        }
+        return res.text().then(function (html) {
+          var doc = new DOMParser().parseFromString(html, "text/html");
+          var errEl = doc.querySelector(".err");
+          meta.classList.add("err");
+          meta.textContent = errEl ? errEl.textContent.trim() : (html.indexOf("<html") !== -1 ? "Error." : html.slice(0, 400));
+          meta.hidden = false;
+        });
+      })
+      .catch(function () {
+        meta.classList.add("err");
+        meta.textContent = "Network error.";
+        meta.hidden = false;
+      })
+      .finally(function () {
+        btn.disabled = false;
+        btn.textContent = prevText;
+      });
+  });
+})();
+</script>
 {% endblock %}

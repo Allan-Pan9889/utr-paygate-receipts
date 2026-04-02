@@ -126,6 +126,12 @@ _UI_ZH: dict[str, Any] = {
         "time_end": "随机时间结束",
         "submit": "生成 PDF",
         "back_home": "← 返回首页",
+        "pdf_busy": "正在生成 PDF…",
+        "pdf_done": "已下载。本次渲染引擎：",
+        "pdf_engine_playwright": "Playwright（HTML 打印，与本地效果一致）",
+        "pdf_engine_reportlab": "ReportLab（备用矢量排版）",
+        "pdf_detail_label": "详情（排错）：",
+        "pdf_engine_unknown": "（未读到 X-PDF-Engine，可能被 CDN/网关去掉响应头）",
     },
 }
 
@@ -251,6 +257,12 @@ _UI_EN: dict[str, Any] = {
         "time_end": "Random time range — end",
         "submit": "Generate PDF",
         "back_home": "← Back to home",
+        "pdf_busy": "Generating PDF…",
+        "pdf_done": "Download started. Engine used:",
+        "pdf_engine_playwright": "Playwright (HTML print, same as local)",
+        "pdf_engine_reportlab": "ReportLab (vector fallback)",
+        "pdf_detail_label": "Detail (debug):",
+        "pdf_engine_unknown": "(X-PDF-Engine missing; CDN may strip custom headers)",
     },
 }
 
