@@ -9,5 +9,4 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY main.py .
 EXPOSE 8080
-# Railway 注入 PORT
-CMD sh -c "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8080}"
+CMD ["sh", "-c", "exec python3 -m uvicorn main:app --host 0.0.0.0 --port ${PORT:-8080}"]

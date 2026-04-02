@@ -7,7 +7,6 @@ import os
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
-from playwright.sync_api import sync_playwright
 
 app = FastAPI(title="UTR PDF Render")
 
@@ -38,6 +37,8 @@ def render_pdf(
     html = body.html
 
     try:
+        from playwright.sync_api import sync_playwright
+
         with sync_playwright() as p:
             launch_args = [
                 "--no-sandbox",
