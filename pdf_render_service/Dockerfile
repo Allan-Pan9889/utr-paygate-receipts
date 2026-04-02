@@ -4,8 +4,8 @@
 FROM mcr.microsoft.com/playwright/python:v1.58.0-jammy
 WORKDIR /app
 ENV PYTHONUNBUFFERED=1
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 COPY requirements.txt .
-# 仅安装 API 层，避免 pip 升级镜像内已固定的 playwright 与浏览器不一致
 RUN pip install --no-cache-dir -r requirements.txt
 COPY main.py .
 EXPOSE 8080

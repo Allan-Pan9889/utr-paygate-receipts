@@ -1,2 +1,4 @@
 fastapi>=0.115.0
 uvicorn[standard]>=0.30.0
+# 与基础镜像 mcr.microsoft.com/playwright/python:v1.58.0-jammy 版本一致；镜像已含浏览器，勿重复下载
+playwright==1.58.0

@@ -3,6 +3,8 @@
 FROM mcr.microsoft.com/playwright/python:v1.58.0-jammy
 WORKDIR /app
 ENV PYTHONUNBUFFERED=1
+# 官方镜像已带 Chromium，安装 Python 包时跳过再下一遍浏览器
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 COPY pdf_render_service/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY pdf_render_service/main.py .
