@@ -18,6 +18,16 @@ FONT_BOLD = "PayGateSans-Bold"
 FONT_INR = "PayGateINR"
 
 
+def _names_registered(names: tuple[str, str, str]) -> bool:
+    """与 pdfmetrics 一致；避免缓存名与注册表脱节导致 setFont KeyError。"""
+    for n in names:
+        try:
+            pdfmetrics.getFont(n)
+        except KeyError:
+            return False
+    return True
+
+
 def use_builtin_font_fallback() -> bool:
     return _FONT_FALLBACK
 
@@ -103,66 +113,83 @@ def ensure_fonts() -> tuple[str, str, str]:
     """返回 (常规, 粗体, 卢比符号用) 字体名。"""
     global _REGISTERED, _FONT_FALLBACK, _CACHED_NAMES
     if _REGISTERED and _CACHED_NAMES is not None:
-        return _CACHED_NAMES
+        if _names_registered(_CACHED_NAMES):
+            return _CACHED_NAMES
+        _REGISTERED = False
+        _CACHED_NAMES = None
 
-    bundled = _try_register_bundled()
-    if bundled is not None:
+    helvetica: tuple[str, str, str] = ("Helvetica", "Helvetica-Bold", "Helvetica")
+
+    try:
+        bundled = _try_register_bundled()
+        if bundled is not None:
+            if not _names_registered(bundled):
+                raise RuntimeError("bundled fonts registered but not in pdfmetrics")
+            _REGISTERED = True
+            _FONT_FALLBACK = False
+            _CACHED_NAMES = bundled
+            return _CACHED_NAMES
+
+        sup = Path("/System/Library/Fonts/Supplemental")
+        regular_path: Path | None = None
+        bold_path: Path | None = None
+        ar = sup / "Arial.ttf"
+        ab = sup / "Arial Bold.ttf"
+        if ar.is_file():
+            regular_path = ar
+        if ab.is_file():
+            bold_path = ab
+
+        for p in _candidates():
+            if regular_path is None and p.suffix.lower() == ".ttf" and "bold" not in p.name.lower():
+                regular_path = p
+            if bold_path is None and p.suffix.lower() == ".ttf" and "bold" in p.name.lower():
+                bold_path = p
+
+        if regular_path is None:
+            for p in _candidates():
+                if p.suffix.lower() == ".ttf":
+                    regular_path = p
+                    break
+
+        if regular_path is None:
+            # Linux 服务器常见路径（部分云镜像含 DejaVu）
+            for p in (
+                Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"),
+                Path("/usr/share/fonts/TTF/DejaVuSans.ttf"),
+                Path("/usr/share/fonts/dejavu/DejaVuSans.ttf"),
+            ):
+                if p.is_file():
+                    regular_path = p
+                    break
+
+        if regular_path is None:
+            # 无 TTF：使用 PDF 内置 Helvetica，金额前缀为「Rs」（见 receipt_pdf._fmt_inr_parts）
+            _REGISTERED = True
+            _FONT_FALLBACK = True
+            _CACHED_NAMES = helvetica
+            return _CACHED_NAMES
+
+        pdfmetrics.registerFont(TTFont(FONT_REGULAR, str(regular_path)))
+
+        if bold_path and bold_path.is_file():
+            pdfmetrics.registerFont(TTFont(FONT_BOLD, str(bold_path)))
+        else:
+            # 无粗体文件时复用常规
+            pdfmetrics.registerFont(TTFont(FONT_BOLD, str(regular_path)))
+
+        inr_path = _dejavu_sans_path() or regular_path
+        pdfmetrics.registerFont(TTFont(FONT_INR, str(inr_path)))
+
+        names = (FONT_REGULAR, FONT_BOLD, FONT_INR)
+        if not _names_registered(names):
+            raise RuntimeError("system TTF registered but not in pdfmetrics")
         _REGISTERED = True
         _FONT_FALLBACK = False
-        _CACHED_NAMES = bundled
+        _CACHED_NAMES = names
         return _CACHED_NAMES
-
-    sup = Path("/System/Library/Fonts/Supplemental")
-    regular_path: Path | None = None
-    bold_path: Path | None = None
-    ar = sup / "Arial.ttf"
-    ab = sup / "Arial Bold.ttf"
-    if ar.is_file():
-        regular_path = ar
-    if ab.is_file():
-        bold_path = ab
-
-    for p in _candidates():
-        if regular_path is None and p.suffix.lower() == ".ttf" and "bold" not in p.name.lower():
-            regular_path = p
-        if bold_path is None and p.suffix.lower() == ".ttf" and "bold" in p.name.lower():
-            bold_path = p
-
-    if regular_path is None:
-        for p in _candidates():
-            if p.suffix.lower() == ".ttf":
-                regular_path = p
-                break
-
-    if regular_path is None:
-        # Linux 服务器常见路径（部分云镜像含 DejaVu）
-        for p in (
-            Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"),
-            Path("/usr/share/fonts/TTF/DejaVuSans.ttf"),
-            Path("/usr/share/fonts/dejavu/DejaVuSans.ttf"),
-        ):
-            if p.is_file():
-                regular_path = p
-                break
-
-    if regular_path is None:
-        # 无 TTF：使用 PDF 内置 Helvetica，金额前缀为「Rs」（见 receipt_pdf._fmt_inr_parts）
+    except Exception:
         _REGISTERED = True
         _FONT_FALLBACK = True
-        _CACHED_NAMES = ("Helvetica", "Helvetica-Bold", "Helvetica")
+        _CACHED_NAMES = helvetica
         return _CACHED_NAMES
-
-    pdfmetrics.registerFont(TTFont(FONT_REGULAR, str(regular_path)))
-
-    if bold_path and bold_path.is_file():
-        pdfmetrics.registerFont(TTFont(FONT_BOLD, str(bold_path)))
-    else:
-        # 无粗体文件时复用常规
-        pdfmetrics.registerFont(TTFont(FONT_BOLD, str(regular_path)))
-
-    inr_path = _dejavu_sans_path() or regular_path
-    pdfmetrics.registerFont(TTFont(FONT_INR, str(inr_path)))
-
-    _REGISTERED = True
-    _CACHED_NAMES = (FONT_REGULAR, FONT_BOLD, FONT_INR)
-    return _CACHED_NAMES
