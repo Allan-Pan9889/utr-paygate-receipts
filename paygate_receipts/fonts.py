@@ -93,20 +93,26 @@ def _candidates() -> list[Path]:
 
 
 def _try_register_bundled() -> tuple[str, str, str] | None:
-    """项目内 bundled_fonts 下的 DejaVu，便于 Vercel 等环境。"""
+    """项目内 bundled_fonts 下的 TTF（Noto/DejaVu），便于 Vercel 等环境。任一步失败则返回 None，避免抛到外层直接变 Helvetica 而漏走系统字体路径。"""
     d = _bundled_dir()
     reg = d / "DejaVuSans.ttf"
     bold = d / "DejaVuSans-Bold.ttf"
-    if not reg.is_file():
+    if not reg.is_file() or reg.stat().st_size < 1024:
         return None
-    pdfmetrics.registerFont(TTFont(FONT_REGULAR, str(reg)))
-    if bold.is_file():
-        pdfmetrics.registerFont(TTFont(FONT_BOLD, str(bold)))
-    else:
-        pdfmetrics.registerFont(TTFont(FONT_BOLD, str(reg)))
-    inr_path = reg
-    pdfmetrics.registerFont(TTFont(FONT_INR, str(inr_path)))
-    return FONT_REGULAR, FONT_BOLD, FONT_INR
+    try:
+        pdfmetrics.registerFont(TTFont(FONT_REGULAR, str(reg)))
+        if bold.is_file() and bold.stat().st_size >= 1024:
+            pdfmetrics.registerFont(TTFont(FONT_BOLD, str(bold)))
+        else:
+            pdfmetrics.registerFont(TTFont(FONT_BOLD, str(reg)))
+        inr_path = reg
+        pdfmetrics.registerFont(TTFont(FONT_INR, str(inr_path)))
+        names = (FONT_REGULAR, FONT_BOLD, FONT_INR)
+        if not _names_registered(names):
+            return None
+        return names
+    except Exception:
+        return None
 
 
 def ensure_fonts() -> tuple[str, str, str]:
@@ -193,3 +199,24 @@ def ensure_fonts() -> tuple[str, str, str]:
         _FONT_FALLBACK = True
         _CACHED_NAMES = helvetica
         return _CACHED_NAMES
+
+
+def ensure_fonts_safe() -> tuple[str, str, str]:
+    """
+    绘制前调用：确保 (fr, fb, f_inr) 在 pdfmetrics 中真实存在，杜绝 KeyError 'PayGateSans-Bold'。
+    若多次刷新仍不一致，强制 Helvetica。
+    """
+    global _REGISTERED, _FONT_FALLBACK, _CACHED_NAMES
+    helv: tuple[str, str, str] = ("Helvetica", "Helvetica-Bold", "Helvetica")
+
+    for _ in range(3):
+        fr, fb, fi = ensure_fonts()
+        if _names_registered((fr, fb, fi)):
+            return fr, fb, fi
+        _REGISTERED = False
+        _CACHED_NAMES = None
+
+    _REGISTERED = True
+    _FONT_FALLBACK = True
+    _CACHED_NAMES = helv
+    return helv

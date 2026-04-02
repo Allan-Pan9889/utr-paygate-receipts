@@ -10,7 +10,7 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.pdfgen.canvas import Canvas
 
-from paygate_receipts.fonts import ensure_fonts, use_builtin_font_fallback
+from paygate_receipts.fonts import ensure_fonts_safe, use_builtin_font_fallback
 from paygate_receipts.settings import AppSettings
 
 # PayGate 卡片 / 参考稿配色
@@ -334,7 +334,7 @@ def build_multi_page_pdf(
     """
     s = settings or AppSettings()
     brand = (s.gateway_name or "PayGate").strip() or "PayGate"
-    fr, fb, f_inr = ensure_fonts()
+    fr, fb, f_inr = ensure_fonts_safe()
 
     if layout == "grid6":
         W, H, slip_w, slip_h, margin, gutter = _landscape_grid_geometry()
