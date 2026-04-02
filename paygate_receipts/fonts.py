@@ -8,6 +8,8 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
 _REGISTERED = False
+# 与 pdfmetrics 实际注册一致；避免首次返回 Helvetica、二次误返回 PayGateSans-* 导致 KeyError
+_CACHED_NAMES: tuple[str, str, str] | None = None
 # True：使用 Helvetica 内置字体，卢比符号以「Rs」代替（无 TTF 时，如部分 Serverless）
 _FONT_FALLBACK = False
 FONT_REGULAR = "PayGateSans"
@@ -99,15 +101,16 @@ def _try_register_bundled() -> tuple[str, str, str] | None:
 
 def ensure_fonts() -> tuple[str, str, str]:
     """返回 (常规, 粗体, 卢比符号用) 字体名。"""
-    global _REGISTERED, _FONT_FALLBACK
-    if _REGISTERED:
-        return FONT_REGULAR, FONT_BOLD, FONT_INR
+    global _REGISTERED, _FONT_FALLBACK, _CACHED_NAMES
+    if _REGISTERED and _CACHED_NAMES is not None:
+        return _CACHED_NAMES
 
     bundled = _try_register_bundled()
     if bundled is not None:
         _REGISTERED = True
         _FONT_FALLBACK = False
-        return bundled
+        _CACHED_NAMES = bundled
+        return _CACHED_NAMES
 
     sup = Path("/System/Library/Fonts/Supplemental")
     regular_path: Path | None = None
@@ -146,7 +149,8 @@ def ensure_fonts() -> tuple[str, str, str]:
         # 无 TTF：使用 PDF 内置 Helvetica，金额前缀为「Rs」（见 receipt_pdf._fmt_inr_parts）
         _REGISTERED = True
         _FONT_FALLBACK = True
-        return "Helvetica", "Helvetica-Bold", "Helvetica"
+        _CACHED_NAMES = ("Helvetica", "Helvetica-Bold", "Helvetica")
+        return _CACHED_NAMES
 
     pdfmetrics.registerFont(TTFont(FONT_REGULAR, str(regular_path)))
 
@@ -160,4 +164,5 @@ def ensure_fonts() -> tuple[str, str, str]:
     pdfmetrics.registerFont(TTFont(FONT_INR, str(inr_path)))
 
     _REGISTERED = True
-    return FONT_REGULAR, FONT_BOLD, FONT_INR
+    _CACHED_NAMES = (FONT_REGULAR, FONT_BOLD, FONT_INR)
+    return _CACHED_NAMES
