@@ -1,0 +1,22 @@
+{% extends "site_base.html" %}
+{% block title %}{{ t.payram.page_title }}{% endblock %}
+{% block content %}
+<section class="panel hero" style="margin-bottom:1rem">
+  <h1 style="margin-bottom:0.65rem">{{ t.payram.heading }}</h1>
+  <p class="sub" style="margin-bottom:0">{{ t.payram.sub }}</p>
+</section>
+
+<section class="panel">
+  {% if payram_url %}
+  <p class="note" style="margin:0 0 1rem">{{ t.payram.security_note }}</p>
+  <div class="cta-row">
+    <a class="btn btn-primary" href="{{ payram_url }}" target="_blank" rel="noopener noreferrer">{{ t.payram.cta }}</a>
+    <a class="btn btn-ghost" href="{{ url_for('tool', lang=lang) }}">{{ t.payram.back_tool }}</a>
+  </div>
+  <p class="note" style="margin:1rem 0 0;font-size:0.8rem;word-break:break-all">{{ payram_url }}</p>
+  {% else %}
+  <p class="note" style="margin:0">{{ t.payram.config_hint }}</p>
+  <p style="margin:1rem 0 0"><a href="{{ url_for('tool', lang=lang) }}">{{ t.payram.back_tool }}</a></p>
+  {% endif %}
+</section>
+{% endblock %}

@@ -97,6 +97,15 @@ _UI_ZH: dict[str, Any] = {
         "rights": "保留所有权利。",
         "privacy": "隐私政策与服务条款上线后请在此添加链接。",
     },
+    "payram": {
+        "page_title": "USDT 收银台（PayRam）| slip.ink",
+        "heading": "USDT 收银台",
+        "sub": "支付网关由 PayRam 提供，运行在 Railway；本站仅作入口跳转，不处理链上资金。",
+        "cta": "打开 PayRam",
+        "security_note": "请在浏览器地址栏确认进入的是您的 Railway 域名后再登录或操作。",
+        "config_hint": "尚未配置跳转地址。请在 Vercel 项目 → Environment Variables 中添加 PAYRAM_PUBLIC_URL，值为 Railway 服务的 https 地址（不要末尾斜杠），保存后重新部署。",
+        "back_tool": "← 返回水单生成工具",
+    },
     "tool": {
         "page_title": "印度网关支付水单生成器（Excel → PDF）",
         "heading": "印度网关支付水单生成器（Excel → PDF）",
@@ -223,6 +232,15 @@ _UI_EN: dict[str, Any] = {
     "footer": {
         "rights": "All rights reserved.",
         "privacy": "Add Privacy Policy & Terms links here when available.",
+    },
+    "payram": {
+        "page_title": "USDT cashier (PayRam) | slip.ink",
+        "heading": "USDT cashier",
+        "sub": "PayRam runs on Railway; this site only links to it and does not custody funds.",
+        "cta": "Open PayRam",
+        "security_note": "Check the address bar shows your Railway URL before signing in.",
+        "config_hint": "PAYRAM_PUBLIC_URL is not set. In Vercel → Environment Variables, add PAYRAM_PUBLIC_URL with your Railway https URL (no trailing slash), then redeploy.",
+        "back_tool": "← Back to receipt generator",
     },
     "tool": {
         "page_title": "India Gateway Payment Slip Generator (Excel → PDF)",

@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import os
 import re
 import tempfile
 import uuid
@@ -141,6 +142,24 @@ def tool():
             form_txn_prefix=form_txn_prefix,
             form_time_start=form_time_start,
             form_time_end=form_time_end,
+        )
+    )
+    _set_lang_cookie(resp)
+    return resp
+
+
+@app.route("/payram", methods=["GET"])
+def payram_entry():
+    """Vercel 入口页：跳转至 Railway 上托管的 PayRam（由 PAYRAM_PUBLIC_URL 配置）。"""
+    lang = resolve_lang()
+    t = get_ui_strings(lang)
+    payram_url = (os.environ.get("PAYRAM_PUBLIC_URL") or "").strip().rstrip("/")
+    resp = make_response(
+        render_template(
+            "payram_entry.html",
+            t=t,
+            lang=lang,
+            payram_url=payram_url,
         )
     )
     _set_lang_cookie(resp)

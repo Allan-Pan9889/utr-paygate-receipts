@@ -84,3 +84,32 @@
 | `pdf_render_service/main.py` | 远程 `POST /render` 实现 |
 
 本地完整 Playwright：`pip install -r requirements-local.txt && playwright install chromium`。
+
+---
+
+## 6. PayRam 收银台：Railway 跑服务 + Vercel 入口页
+
+架构：**PayRam（Docker）部署在 Railway**；**Vercel 仅提供跳转页** `https://你的域名/payram`，通过环境变量指向 Railway 公网地址。
+
+### 6.1 Vercel
+
+1. 在 **Settings → Environment Variables** 增加：
+   - **`PAYRAM_PUBLIC_URL`**：Railway 服务的 **https 根地址**，例如 `https://payram-production-xxxx.up.railway.app`，**不要**末尾斜杠。
+2. 保存后 **Redeploy**。
+3. 访问 **`/payram`**：若已配置 URL，会显示「打开 PayRam」按钮（新标签页打开 Railway）；未配置则显示设置说明。
+
+### 6.2 Railway（概要）
+
+PayRam 官方安装脚本面向「单机 Docker」，迁到 Railway 时需自行对齐镜像与环境（详见 [PayRam / payram-scripts](https://github.com/PayRam/payram-scripts)）：
+
+1. **新建 Railway 项目** → **Deploy from Docker Hub**（或自定义 Dockerfile），镜像示例：`payramapp/payram`（标签以官方为准，如 `latest` 或脚本中的 `DEFAULT_IMAGE_TAG`）。
+2. **HTTP 端口**：安装脚本将应用暴露在容器 **8080**（见脚本中 `--publish 8080:8080`）。在 Railway **Networking** 中为服务生成公网域名，并将入站流量指向容器 **8080**（若 Railway 使用 `PORT`，需确认镜像内进程是否监听该变量；若不监听，请在文档或镜像说明中固定使用 8080）。
+3. **持久化**：脚本挂载 `PAYRAM_CORE_DIR`、PostgreSQL 数据目录等；在 Railway 为对应路径配置 **Volume**，避免重启丢数据。
+4. **环境变量**（与脚本中 `docker run -e` 一致，按你的环境填写）：`AES_KEY`、`BLOCKCHAIN_NETWORK_TYPE`、`SERVER`、`POSTGRES_HOST`、`POSTGRES_PORT`、`POSTGRES_DATABASE`、`POSTGRES_USERNAME`、`POSTGRES_PASSWORD`、`POSTGRES_SSLMODE`、`SSL_CERT_PATH` 等。数据库可使用 **Railway PostgreSQL** 插件，将内网 host/port/user/password 填入上述变量。
+5. **对外 URL**：将 PayRam 内与回调相关的配置（如脚本里的 `PAYMENTS_APP_SERVER_URL`）改为你的 **Railway https 公网地址**，避免仍指向官方示例域。
+
+Railway 部署细节以 PayRam 官方文档与镜像说明为准；若官方后续提供 Compose / Railway 模板，优先跟随官方。
+
+### 6.3 本地脚本参考
+
+仓库内 **`scripts/setup_payram.sh`** 为官方安装脚本副本，便于查阅 `docker run` 参数与默认镜像标签；**生产部署仍以官方仓库为准**。
