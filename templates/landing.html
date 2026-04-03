@@ -5,14 +5,14 @@
 <section class="hero">
   <h1>{{ t.hero.title }}</h1>
   <p class="sub">{{ t.hero.subtitle }}</p>
-  <p class="hint" style="margin:0 0 1rem;font-size:0.95rem;color:#2e7d32">{{ t.hero.badge }}</p>
+  <p class="hero-badge">{{ t.hero.badge }}</p>
   <div class="cta-row">
     <a class="btn btn-primary" href="{{ url_for('tool', lang=lang) }}">{{ t.hero.cta_tool }}</a>
     <a class="btn btn-ghost" href="{{ url_for('download_sample') }}">{{ t.hero.cta_sample }}</a>
   </div>
 </section>
 
-<section>
+<section class="panel">
   <h2>{{ t.pain.title }}</h2>
   <ul class="plain">
     {% for item in t.pain.lines %}
@@ -21,7 +21,7 @@
   </ul>
 </section>
 
-<section>
+<section class="panel">
   <h2>{{ t.features.title }}</h2>
   <div class="feat-grid">
     {% for it in t.features.blocks %}
@@ -33,7 +33,7 @@
   </div>
 </section>
 
-<section>
+<section class="panel">
   <h2>{{ t.steps.title }}</h2>
   <ol class="plain">
     {% for item in t.steps.lines %}
@@ -43,7 +43,7 @@
 </section>
 
 {% if show_pricing %}
-<section>
+<section class="panel">
   <h2>{{ t.pricing.title }}</h2>
   <p class="note">{{ t.pricing.note }}</p>
   <div class="plans" style="margin-top:1rem">
@@ -58,7 +58,7 @@
 </section>
 {% endif %}
 
-<section>
+<section class="panel">
   <h2>{{ t.faq.title }}</h2>
   {% for faq in t.faq.qa %}
   <div class="faq-item">
@@ -68,7 +68,7 @@
   {% endfor %}
 </section>
 
-<section>
+<section class="panel">
   <h2>{{ t.legal.title }}</h2>
   <p class="note" style="margin:0">{{ t.legal.body }}</p>
 </section>

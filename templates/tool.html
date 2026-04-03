@@ -2,17 +2,129 @@
 {% block title %}{{ t.tool.page_title }}{% endblock %}
 {% block extra_css %}
 <style>
-  .tool-page h1 { font-size: 1.2rem; margin: 0 0 1rem; }
-  .hint { color: var(--muted); font-size: 0.9rem; margin: 0.75rem 0; }
-  .err { color: #b71c1c; margin: 0.5rem 0; font-size: 0.92rem; }
-  label { display: block; margin-top: 0.65rem; font-size: 0.85rem; color: #444; }
-  input[type=text], input[type=file] { width: 100%; max-width: 28rem; }
-  input[type=text] { padding: 0.4rem 0.55rem; border: 1px solid var(--border); border-radius: 6px; }
-  fieldset { border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem; margin: 1rem 0; background: #fafbfc; }
-  legend { font-size: 0.88rem; padding: 0 0.35rem; }
-  .back { margin-bottom: 1rem; font-size: 0.9rem; }
-  .field-hint { font-size: 0.8rem; color: #666; display: block; margin: -0.35rem 0 0.35rem; }
-  .pdf-meta { white-space: pre-wrap; word-break: break-word; }
+  .tool-page {
+    background: var(--card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem 1.65rem 1.75rem;
+    box-shadow: var(--shadow-soft);
+  }
+  .tool-page h1 {
+    font-family: var(--font-display);
+    font-size: clamp(1.2rem, 3vw, 1.45rem);
+    font-weight: 600;
+    margin: 0 0 1rem;
+    letter-spacing: -0.02em;
+  }
+  .tool-page .hint {
+    color: var(--muted);
+    font-size: 0.92rem;
+    margin: 0.65rem 0;
+    line-height: 1.55;
+    max-width: 52ch;
+  }
+  .tool-page .err {
+    color: #991b1b;
+    margin: 0.65rem 0;
+    font-size: 0.92rem;
+    padding: 0.65rem 0.85rem;
+    border-radius: var(--radius-sm);
+    background: rgba(153, 27, 27, 0.06);
+    border: 1px solid rgba(153, 27, 27, 0.15);
+  }
+  .tool-page label {
+    display: block;
+    margin-top: 0.75rem;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .tool-page input[type="text"],
+  .tool-page input[type="file"] {
+    width: 100%;
+    max-width: 28rem;
+  }
+  .tool-page input[type="text"] {
+    margin-top: 0.25rem;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-ui);
+    font-size: 0.92rem;
+    background: var(--card-solid);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .tool-page input[type="text"]:focus {
+    outline: none;
+    border-color: rgba(20, 83, 45, 0.45);
+    box-shadow: 0 0 0 3px rgba(20, 83, 45, 0.12);
+  }
+  .tool-page input[type="file"] {
+    margin-top: 0.35rem;
+    font-size: 0.88rem;
+    color: var(--muted);
+  }
+  .tool-page input[type="file"]::file-selector-button {
+    margin-right: 0.75rem;
+    padding: 0.45rem 1rem;
+    border-radius: 999px;
+    border: 1px solid var(--border-strong);
+    background: var(--card-solid);
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 0.82rem;
+    color: var(--text);
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .tool-page input[type="file"]::file-selector-button:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .tool-page fieldset {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 1rem 1.15rem 1.15rem;
+    margin: 1.15rem 0;
+    background: linear-gradient(160deg, rgba(255, 252, 247, 0.95) 0%, rgba(245, 241, 234, 0.5) 100%);
+    border-left: 3px solid rgba(180, 83, 9, 0.35);
+  }
+  .tool-page legend {
+    font-size: 0.86rem;
+    font-weight: 600;
+    padding: 0 0.4rem;
+    color: var(--text);
+  }
+  .tool-page .back {
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+  }
+  .tool-page .back a {
+    font-weight: 500;
+  }
+  .tool-page .field-hint {
+    font-size: 0.8rem;
+    color: var(--muted);
+    display: block;
+    margin: -0.2rem 0 0.4rem;
+    line-height: 1.45;
+  }
+  .tool-page .pdf-meta {
+    white-space: pre-wrap;
+    word-break: break-word;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-sm);
+    background: rgba(20, 83, 45, 0.06);
+    border: 1px solid rgba(20, 83, 45, 0.12);
+    font-size: 0.88rem;
+  }
+  .tool-page .pdf-meta.err {
+    background: rgba(153, 27, 27, 0.06);
+    border-color: rgba(153, 27, 27, 0.15);
+  }
+  .tool-page form > p:last-child { margin-top: 1.25rem; margin-bottom: 0; }
 </style>
 {% endblock %}
 {% block content %}
