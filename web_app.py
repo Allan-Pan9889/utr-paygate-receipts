@@ -26,7 +26,7 @@ from paygate_receipts.settings import AppSettings
 from paygate_receipts.web_translations import get_ui_strings
 
 _ROOT = Path(__file__).resolve().parent
-SAMPLE_XLSX = "UTR001.xlsx"
+SAMPLE_XLSX = "slip001.xlsx"
 
 app = Flask(__name__)
 app.secret_key = "paygate-receipt-dev-key-change-in-production"
