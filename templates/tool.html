@@ -138,7 +138,7 @@
     <a href="{{ url_for('download_sample') }}">{{ t.tool.sample_link }}</a></p>
   {% if error %}<p class="err" id="server-err">{{ error }}</p>{% endif %}
   <p class="hint pdf-meta" id="pdf-meta" hidden></p>
-  <form id="receipt-form" method="post" enctype="multipart/form-data" action="{{ url_for('tool', lang=lang) }}" data-busy="{{ t.tool.pdf_busy }}" data-done="{{ t.tool.pdf_done }}" data-pw="{{ t.tool.pdf_engine_playwright }}" data-rl="{{ t.tool.pdf_engine_reportlab }}" data-dlabel="{{ t.tool.pdf_detail_label }}" data-unknown="{{ t.tool.pdf_engine_unknown }}">
+  <form id="receipt-form" method="post" enctype="multipart/form-data" action="{{ url_for('tool', lang=lang) }}" data-busy="{{ t.tool.pdf_busy }}">
     <input type="file" name="file" accept=".xlsx,.xls,.csv" required/>
     <fieldset>
       <legend>{{ t.tool.fieldset }}</legend>
@@ -179,19 +179,6 @@
       .then(function (res) {
         var ct = (res.headers.get("Content-Type") || "").toLowerCase();
         if (ct.indexOf("application/pdf") !== -1) {
-          var eng = (res.headers.get("X-PDF-Engine") || res.headers.get("x-pdf-engine") || "").toLowerCase();
-          var det = res.headers.get("X-PDF-Detail") || res.headers.get("x-pdf-detail") || "";
-          var done = form.getAttribute("data-done") || "";
-          var labelPw = form.getAttribute("data-pw") || "Playwright";
-          var labelRl = form.getAttribute("data-rl") || "ReportLab";
-          var dlab = form.getAttribute("data-dlabel") || "";
-          var unk = form.getAttribute("data-unknown") || "?";
-          var engLabel =
-            eng === "playwright" ? labelPw : eng === "reportlab" ? labelRl : unk;
-          var lines = [done + " " + engLabel];
-          if (det) lines.push(dlab + " " + det);
-          meta.textContent = lines.join("\n");
-          meta.hidden = false;
           return res.blob().then(function (blob) {
             var url = URL.createObjectURL(blob);
             var a = document.createElement("a");
