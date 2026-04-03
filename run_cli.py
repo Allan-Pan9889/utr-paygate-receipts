@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""命令行：Excel → 合并 PDF（横向每页 6 张）。"""
+"""命令行：Excel → 合并 PDF（横向每页 3 张）。"""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from paygate_receipts.settings import AppSettings
 
 def main() -> None:
     ap = argparse.ArgumentParser(
-        description="从 Excel 导入交易，使用 HTML+Tailwind 水单模板生成 PDF（横向每页 6 张）。"
+        description="从 Excel 导入交易，使用 HTML+Tailwind 水单模板生成 PDF（横向每页 3 张）。"
     )
     ap.add_argument("excel", type=Path, help="输入 .xlsx 路径")
     ap.add_argument(
@@ -68,7 +68,7 @@ def main() -> None:
     )
     rows = apply_row_defaults(rows, settings)
     pdf_res = build_receipt_pdf(str(out), rows, settings=settings)
-    pages = (len(rows) + 5) // 6
+    pages = (len(rows) + 2) // 3
     extra = f" | {pdf_res.detail}" if pdf_res.detail else ""
     print(
         f"已生成：{out}（共 {len(rows)} 笔；约 {pages} 页；PDF 引擎：{pdf_res.engine}{extra}）"

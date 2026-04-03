@@ -1,4 +1,4 @@
-"""水单 PDF：PayGate 风格卡片 + 横向 A4 每页 6 张（3 列 × 2 行）。"""
+"""水单 PDF：PayGate 风格卡片 + 横向 A4 每页 3 张（单行 3 列，垂直居中）。"""
 
 from __future__ import annotations
 
@@ -292,35 +292,36 @@ def draw_noahpay_slip(
         c.drawString(xr - tw, fy + 22 - i * (foot_fs + 0.6), t)
 
 
-def _landscape_grid_geometry() -> tuple[float, float, float, float, float, float]:
-    """返回 (page_w, page_h, slip_w, slip_h, margin, gutter)。"""
+def _landscape_grid3_geometry() -> tuple[float, float, float, float, float, float, float]:
+    """横向 A4 单行 3 张：返回 (page_w, page_h, slip_w, slip_h, margin, gutter, slip_y0)；slip_y0 为卡片底边 y。"""
     W, H = landscape(A4)
     margin = 16.0
-    gutter = 10.0
+    gutter = 20.0
     usable_w = W - 2 * margin
     usable_h = H - 2 * margin
     slip_w = (usable_w - 2 * gutter) / 3.0
-    slip_h = (usable_h - gutter) / 2.0
-    return W, H, slip_w, slip_h, margin, gutter
+    slip_h = usable_h * 0.92
+    slip_y0 = margin + (usable_h - slip_h) / 2.0
+    return W, H, slip_w, slip_h, margin, gutter, slip_y0
 
 
 def build_multi_page_pdf(
     path: str,
     rows: list[ReceiptRow],
-    layout: Literal["grid6", "single"] = "grid6",
+    layout: Literal["grid3", "single"] = "grid3",
     settings: AppSettings | None = None,
 ) -> None:
     """
     layout:
-      - grid6: 横向 A4，每页 3×2=6 张 PayGate 水单
+      - grid3: 横向 A4，每页 3 张（单行），在可用高度内垂直居中，列间距略增
       - single: 纵向 A4，每页 1 张（放大卡片）
     """
     s = settings or AppSettings()
     brand = (s.gateway_name or "PayGate").strip() or "PayGate"
     fr, fb, f_inr = ensure_fonts_safe()
 
-    if layout == "grid6":
-        W, H, slip_w, slip_h, margin, gutter = _landscape_grid_geometry()
+    if layout == "grid3":
+        W, H, slip_w, slip_h, margin, gutter, slip_y0 = _landscape_grid3_geometry()
         c = Canvas(path, pagesize=(W, H))
         idx = 0
         while idx < len(rows):
@@ -328,15 +329,13 @@ def build_multi_page_pdf(
             c.setFillColor(COLOR_PAGE_BG)
             c.rect(0, 0, W, H, stroke=0, fill=1)
             c.restoreState()
-            for slot in range(6):
+            for slot in range(3):
                 if idx >= len(rows):
                     break
-                row_i = slot // 3
-                col_i = slot % 3
+                col_i = slot
                 sx = margin + col_i * (slip_w + gutter)
-                sy = margin + row_i * (slip_h + gutter)
                 draw_noahpay_slip(
-                    c, rows[idx], sx, sy, slip_w, slip_h, fr, fb, f_inr, brand_name=brand
+                    c, rows[idx], sx, slip_y0, slip_w, slip_h, fr, fb, f_inr, brand_name=brand
                 )
                 idx += 1
             if idx < len(rows):

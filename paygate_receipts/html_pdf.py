@@ -95,19 +95,20 @@ def _row_to_context(r: ReceiptRow) -> dict[str, Any]:
 
 
 def _build_pages(rows: list[ReceiptRow]) -> list[list[dict[str, Any]]]:
-    """每页最多 6 条，3×2 格子；不足补空位。"""
+    """每页最多 3 条，单行 3 列；不足补空位。"""
+    per = 3
     pages: list[list[dict[str, Any]]] = []
     i = 0
     while i < len(rows):
-        chunk = rows[i : i + 6]
+        chunk = rows[i : i + per]
         page: list[dict[str, Any]] = []
-        for j in range(6):
+        for j in range(per):
             if j < len(chunk):
                 page.append({"row": _row_to_context(chunk[j])})
             else:
                 page.append({"row": None})
         pages.append(page)
-        i += 6
+        i += per
     return pages
 
 
@@ -252,7 +253,7 @@ def build_receipt_pdf(
     if _use_reportlab_backend():
         from paygate_receipts.receipt_pdf import build_multi_page_pdf
 
-        build_multi_page_pdf(path, rows, layout="grid6", settings=settings)
+        build_multi_page_pdf(path, rows, layout="grid3", settings=settings)
         return ReceiptPdfResult("reportlab", _reportlab_only_reason())
     html = render_receipt_html(rows, settings=settings)
     if os.environ.get("PDF_RENDER_URL", "").strip():
@@ -262,7 +263,7 @@ def build_receipt_pdf(
         except RuntimeError as e:
             from paygate_receipts.receipt_pdf import build_multi_page_pdf
 
-            build_multi_page_pdf(path, rows, layout="grid6", settings=settings)
+            build_multi_page_pdf(path, rows, layout="grid3", settings=settings)
             return ReceiptPdfResult(
                 "reportlab",
                 "fallback_after_remote_playwright: " + _ascii_header_snippet(str(e)),
@@ -272,7 +273,7 @@ def build_receipt_pdf(
     except ImportError:
         from paygate_receipts.receipt_pdf import build_multi_page_pdf
 
-        build_multi_page_pdf(path, rows, layout="grid6", settings=settings)
+        build_multi_page_pdf(path, rows, layout="grid3", settings=settings)
         return ReceiptPdfResult("reportlab", "no playwright package (pip install playwright)")
     try:
         html_to_pdf(html, path)
@@ -280,7 +281,7 @@ def build_receipt_pdf(
     except RuntimeError as e:
         from paygate_receipts.receipt_pdf import build_multi_page_pdf
 
-        build_multi_page_pdf(path, rows, layout="grid6", settings=settings)
+        build_multi_page_pdf(path, rows, layout="grid3", settings=settings)
         return ReceiptPdfResult(
             "reportlab",
             "fallback_after_local_playwright: " + _ascii_header_snippet(str(e)),

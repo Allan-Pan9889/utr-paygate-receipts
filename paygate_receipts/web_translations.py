@@ -16,7 +16,7 @@ _UI_ZH: dict[str, Any] = {
     },
     "hero": {
         "title": "印度网关支付水单，一键生成专业 PDF",
-        "subtitle": "从 Excel 批量导入交易，统一版式、横向 A4、每页 6 张，便于对账与归档。",
+        "subtitle": "从 Excel 批量导入交易，统一版式、横向 A4、每页 3 张，便于对账与归档。",
         "badge": "用浏览器打开即可使用，无需安装插件或本地软件。",
         "cta_tool": "上传 Excel 生成 PDF",
         "cta_sample": "下载示例表 slip001.xlsx",
@@ -34,7 +34,7 @@ _UI_ZH: dict[str, Any] = {
         "blocks": [
             {"t": "Excel / CSV 导入", "d": "首行英文列名，自动映射常见别名。"},
             {"t": "空字段可自动生成", "d": "Transaction No. / Time 为空时，按配置补全（前缀与随机时间区间）。"},
-            {"t": "版式统一", "d": "PayGate 风格水单，横向 A4，每页 6 张。"},
+            {"t": "版式统一", "d": "PayGate 风格水单，横向 A4，每页 3 张。"},
             {"t": "示例模板", "d": "提供 slip001.xlsx 示例，对照列名与格式。"},
         ],
     },
@@ -102,7 +102,7 @@ _UI_ZH: dict[str, Any] = {
         "heading": "印度网关支付水单生成器（Excel → PDF）",
         "intro": "首行需包含：Beneficiary Name, IFSC Code, Account Number, Amount, Transaction No., Transaction Time, UTR Number。",
         "auto": "若上传 Excel 文件中 Transaction No. / Transaction Time 为空，将按下方「可选配置」自动生成。",
-        "pdf_note": "输出为高清 PDF，横向 A4、每页 6 张，可直接打印或归档。",
+        "pdf_note": "输出为高清 PDF，横向 A4、每页 3 张，可直接打印或归档。",
         "sample": "示例表格：<strong>slip001.xlsx</strong> — 列名与上文一致；请按此模版进行数据填充。",
         "sample_link": "下载 slip001.xlsx",
         "err_no_file": "请选择文件。",
@@ -140,7 +140,7 @@ _UI_EN: dict[str, Any] = {
     },
     "hero": {
         "title": "India gateway payment receipts to polished PDFs—in one step",
-        "subtitle": "Import transactions from Excel in bulk. Consistent layout, landscape A4, six receipts per page—ready for reconciliation and filing.",
+        "subtitle": "Import transactions from Excel in bulk. Consistent layout, landscape A4, three receipts per page—ready for reconciliation and filing.",
         "badge": "Use it in your browser—no plugins or local software to install.",
         "cta_tool": "Upload Excel & generate PDF",
         "cta_sample": "Download sample slip001.xlsx",
@@ -158,7 +158,7 @@ _UI_EN: dict[str, Any] = {
         "blocks": [
             {"t": "Excel / CSV import", "d": "English headers in row one; common aliases are mapped."},
             {"t": "Optional auto-fill", "d": "If Transaction No. / Time is empty, values are generated per config (prefix & time window)."},
-            {"t": "Consistent layout", "d": "PayGate-style receipts, landscape A4, six per page."},
+            {"t": "Consistent layout", "d": "PayGate-style receipts, landscape A4, three per page."},
             {"t": "Sample file", "d": "slip001.xlsx shows required columns; use it as your template."},
         ],
     },
@@ -226,7 +226,7 @@ _UI_EN: dict[str, Any] = {
         "heading": "India Gateway Payment Slip Generator (Excel → PDF)",
         "intro": "Row one must include: Beneficiary Name, IFSC Code, Account Number, Amount, Transaction No., Transaction Time, UTR Number.",
         "auto": "If Transaction No. / Transaction Time is empty in the uploaded Excel file, values are generated automatically using the optional settings below.",
-        "pdf_note": "Output is a high-resolution PDF, landscape A4, six receipts per page—ready to print or archive.",
+        "pdf_note": "Output is a high-resolution PDF, landscape A4, three receipts per page—ready to print or archive.",
         "sample": "Sample spreadsheet: <strong>slip001.xlsx</strong> — headers match the list above; fill in your data using this template.",
         "sample_link": "Download slip001.xlsx",
         "err_no_file": "Please choose a file.",
