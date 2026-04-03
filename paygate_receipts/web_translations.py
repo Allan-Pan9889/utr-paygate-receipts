@@ -7,9 +7,9 @@ from typing import Any
 _UI_ZH: dict[str, Any] = {
     "lang": "zh",
     "html_lang": "zh-CN",
-    "meta_title": "印度网关支付水单生成器（Excel → PDF）| PayGate 水单",
+    "meta_title": "印度网关支付水单生成器（Excel → PDF）| slip.ink",
     "nav": {
-        "brand": "PayGate 水单",
+        "brand": "slip.ink",
         "tool": "生成工具",
         "switch_en": "English",
         "switch_zh": "中文",
@@ -139,9 +139,9 @@ _UI_ZH: dict[str, Any] = {
 _UI_EN: dict[str, Any] = {
     "lang": "en",
     "html_lang": "en",
-    "meta_title": "India Gateway Payment Slip Generator (Excel → PDF) | PayGate Receipt",
+    "meta_title": "India Gateway Payment Slip Generator (Excel → PDF) | slip.ink",
     "nav": {
-        "brand": "PayGate Receipt",
+        "brand": "slip.ink",
         "tool": "Generator",
         "switch_en": "English",
         "switch_zh": "中文",
