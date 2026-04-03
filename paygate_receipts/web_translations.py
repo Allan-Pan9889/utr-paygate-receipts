@@ -47,10 +47,6 @@ _UI_ZH: dict[str, Any] = {
             "上传文件，下载合并后的 PDF",
         ],
     },
-    "tech": {
-        "title": "使用方式",
-        "body": "用常见浏览器（Chrome、Safari、Edge、Firefox 等）访问本页，上传 Excel 或 CSV，即可下载 PDF。生成在服务端完成，您无需安装 Chromium、Playwright 或任何额外程序。",
-    },
     "pricing": {
         "title": "定价参考（上线后可选）",
         "note": "以下为产品规划参考，正式收费以站内公示为准。",
@@ -76,20 +72,16 @@ _UI_ZH: dict[str, Any] = {
         "title": "常见问题",
         "qa": [
             {
-                "q": "我需要在电脑上安装 Chromium 或 Playwright 吗？",
-                "a": "不需要。那是运行本服务的服务器端环境，由网站运营方在云端维护。您只需用浏览器打开页面、上传表格即可。若您自行在本机部署开源版本，才需要在服务器上配置浏览器内核，与访客无关。",
-            },
-            {
                 "q": "支持哪些文件格式？",
                 "a": "支持 .xlsx、.xls 及表格型 .csv。首行需为英文列名，与说明一致。",
             },
             {
                 "q": "数据会上传到哪里？",
-                "a": "取决于您部署的服务器。请在隐私政策中说明是否暂存、保留多久；建议在服务端处理完毕后尽快删除临时文件。",
+                "a": "上传和生成的文件都不会保存在服务器，每次生成完都会立即清理删除。",
             },
             {
                 "q": "空着的交易号和时间怎么办？",
-                "a": "可在页面或 config.json 中配置前缀与随机时间范围，系统将自动生成。",
+                "a": "可在页面配置前缀与随机时间范围，系统将自动生成。",
             },
             {
                 "q": "生成失败怎么办？",
@@ -179,10 +171,6 @@ _UI_EN: dict[str, Any] = {
             "Upload and download the merged PDF",
         ],
     },
-    "tech": {
-        "title": "How you use it",
-        "body": "Open this site in a normal browser (Chrome, Safari, Edge, Firefox, etc.), upload your Excel or CSV, and download the PDF. Generation runs on the server—you do not install Chromium, Playwright, or anything else.",
-    },
     "pricing": {
         "title": "Pricing (draft)",
         "note": "Indicative tiers; official pricing will be published on the site.",
@@ -208,20 +196,16 @@ _UI_EN: dict[str, Any] = {
         "title": "FAQ",
         "qa": [
             {
-                "q": "Do I need to install Chromium or Playwright on my computer?",
-                "a": "No. Those are part of the server environment, maintained by whoever hosts the service. You only need a browser. If you self-host the open-source app, you configure the browser engine on the server—that is separate from end users.",
-            },
-            {
                 "q": "Which file formats are supported?",
                 "a": ".xlsx, .xls, and tabular .csv. Row one must use the required English column names.",
             },
             {
-                "q": "Where is my data processed?",
-                "a": "It depends on your deployment. State retention in your privacy policy; delete temporary files promptly when possible.",
+                "q": "Where does my upload go? Are files kept on the server?",
+                "a": "Uploaded files and generated PDFs are not stored on the server; they are removed immediately after each generation finishes.",
             },
             {
                 "q": "What if transaction no. or time is blank?",
-                "a": "Configure prefix and random time range in the form or config.json; values will be generated automatically.",
+                "a": "Set the prefix and random time range on the page; the system will generate values automatically.",
             },
             {
                 "q": "PDF generation failed?",
