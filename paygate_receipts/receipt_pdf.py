@@ -18,7 +18,6 @@ COLOR_PAGE_BG = colors.HexColor("#e8eaed")
 COLOR_CARD = colors.white
 COLOR_SHADOW = colors.Color(0.82, 0.84, 0.86)
 COLOR_BRAND = colors.HexColor("#2563eb")
-COLOR_KEY = colors.HexColor("#1e40af")
 COLOR_TEXT = colors.HexColor("#333333")
 COLOR_LABEL = colors.HexColor("#6b7280")
 COLOR_SUCCESS = colors.HexColor("#16a34a")
@@ -139,20 +138,6 @@ def _draw_success_row(
     return max(2.1 * R + fs * 0.15, fs + 6.0)
 
 
-def _draw_key_icon(c: Canvas, cx: float, cy: float, fr: str, size: float) -> None:
-    """横向钥匙简笔画。"""
-    c.saveState()
-    c.setStrokeColor(COLOR_KEY)
-    c.setFillColor(COLOR_KEY)
-    c.setLineWidth(0.9)
-    r = size * 0.35
-    c.circle(cx - size * 0.45, cy, r, stroke=1, fill=0)
-    c.line(cx - size * 0.1, cy, cx + size * 0.55, cy)
-    c.line(cx + size * 0.55, cy, cx + size * 0.55, cy - size * 0.12)
-    c.line(cx + size * 0.55, cy - size * 0.12, cx + size * 0.4, cy - size * 0.12)
-    c.restoreState()
-
-
 def _divider_title(
     c: Canvas,
     cx: float,
@@ -224,10 +209,8 @@ def draw_noahpay_slip(
     c.setFont(fb, brand_fs)
     c.setFillColor(COLOR_BRAND)
     c.drawCentredString(cx, top - cur, brand_name)
-    cur += brand_fs + 6 * scale
-
-    _draw_key_icon(c, cx, top - cur, fr, 13 * scale)
-    cur += 14 * scale
+    # 原钥匙行已去掉，略留间距再接金额
+    cur += brand_fs + 8 * scale
 
     amt_fs = max(13.0, 15.5 * scale)
     y_amt = top - cur
