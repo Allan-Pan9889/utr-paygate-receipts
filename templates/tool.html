@@ -36,7 +36,7 @@
       <span class="field-hint">{{ t.tool.txn_prefix_hint }}</span>
       <input type="text" name="txn_prefix" value="{{ form_txn_prefix }}" placeholder="8691" maxlength="4"
         pattern="^$|^[A-Za-z0-9]{4}$" inputmode="text" autocomplete="off" spellcheck="false"
-        title="{{ t.tool.txn_prefix_hint }}"
+        title="{{ t.tool.txn_prefix_title }}"
         oninput="this.value=this.value.replace(/[^A-Za-z0-9]/g,'').slice(0,4);"/>
       <label>{{ t.tool.time_start }}</label>
       <input type="text" name="time_start" value="{{ form_time_start }}" placeholder="YYYY-MM-DD HH:MM:SS" autocomplete="off"/>
